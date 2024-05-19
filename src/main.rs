@@ -1,40 +1,59 @@
+#![allow(dead_code, unused)]
+
 use aws_config::BehaviorVersion;
 use aws_sdk_sqs::{Client, Error};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+
+use eurorust_derive_macro::Sender;
 
 const REGION: &str = "eu-west-1";
 const ENDPOINT: &str = "http://localhost:4566";
+const QUEUE_URL: &str = "http://sqs.eu-west-1.localhost.localstack.cloud:4566/000000000000/eurorust";
 
-#[derive(Debug,Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Sender)]
 struct Message {
     name: String,
     country: String,
 }
 
-// TODO now add a proc macro that
-// - generates a client
-// - with a new method that takes the queue
-// - and a send and receive that automatically change it into the proper struct
-
 #[tokio::main]
-async fn main() -> Result<(), aws_sdk_sqs::Error> {
-    basic_example().await?;
+async fn main() -> Result<(), Error> {
+    // basic_example().await?;
+    derive_example().await?;
+    Ok(())
+}
+
+async fn derive_example() -> Result<(), Error> {
+    let sqs_client = create_sqs_client().await;
+
+    let sqs_client = SqsClientForMessage::new(sqs_client, QUEUE_URL.to_string());
+    sqs_client.send(Message {
+        name: "Sam".to_string(),
+        country: "Belgium".to_string(),
+    }).await;
+    let messages = sqs_client.receive().await;
+    println!("Received {:?} from {}", messages, QUEUE_URL);
+
     Ok(())
 }
 
 async fn basic_example() -> Result<(), Error> {
     let sqs_client = create_sqs_client().await;
-    let our_queue = find_queue(&sqs_client).await?;
+
+    let message_to_send = Message {
+        name: "Sam".to_string(),
+        country: "Belgium".to_string(),
+    };
 
     sqs_client.send_message()
-        .queue_url(our_queue)
-        .message_body(r#"{ "name": "John", "country": "UK" }"#)
+        .queue_url(QUEUE_URL)
+        .message_body(serde_json::to_string(&message_to_send).expect("conversion to json to work"))
         .send()
         .await
         .expect("send message to queue to succeed");
 
     let response = sqs_client.receive_message()
-        .queue_url(our_queue)
+        .queue_url(QUEUE_URL)
         .send()
         .await
         .expect("receive message to queue to succeed");
@@ -45,15 +64,8 @@ async fn basic_example() -> Result<(), Error> {
         .map(|m| serde_json::from_str(&m).expect("message to be valid Message struct"))
         .collect::<Vec<Message>>();
 
-    println!("Received {:?} from {}", messages, our_queue);
+    println!("Received {:?} from {}", messages, QUEUE_URL);
     Ok(())
-}
-
-async fn find_queue(sqs_client: &Client) -> Result<&String, Error> {
-    let queues = sqs_client.list_queues().send().await?;
-    let queue_urls = queues.queue_urls.expect("to have at least one queue");
-    let our_queue = queue_urls.first().expect("to have at least one queue");
-    Ok(our_queue)
 }
 
 async fn create_sqs_client() -> Client {

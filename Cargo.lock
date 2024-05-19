@@ -491,9 +491,18 @@ version = "0.1.0"
 dependencies = [
  "aws-config",
  "aws-sdk-sqs",
+ "eurorust-derive-macro",
  "serde",
  "serde_json",
  "tokio",
+]
+
+[[package]]
+name = "eurorust-derive-macro"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn",
 ]
 
 [[package]]
