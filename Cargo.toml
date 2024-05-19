@@ -1,0 +1,11 @@
+[package]
+name = "eurorust-derive"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aws-config = { version = "1.1.7", features = ["behavior-version-latest"] }
+aws-sdk-sqs = "1.25.0"
+serde = { version = "1.0.202", features = ["derive"] }
+serde_json = "1.0.117"
+tokio = { version = "1", features = ["full"] }
