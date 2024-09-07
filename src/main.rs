@@ -4,13 +4,11 @@ use aws_config::BehaviorVersion;
 use aws_sdk_sqs::{Client, Error};
 use serde::{Deserialize, Serialize};
 
-use eurorust_derive_macro::Sender;
-
 const REGION: &str = "eu-west-1";
 const ENDPOINT: &str = "http://localhost:4566";
 const QUEUE_URL: &str = "http://sqs.eu-west-1.localhost.localstack.cloud:4566/000000000000/eurorust";
 
-#[derive(Debug, Serialize, Deserialize, Sender)]
+#[derive(Debug, Serialize, Deserialize)]
 struct Message {
     name: String,
     country: String,
