@@ -18,22 +18,7 @@ struct Message {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    // basic_example().await?;
-    derive_example().await?;
-    Ok(())
-}
-
-async fn derive_example() -> Result<(), Error> {
-    let sqs_client = create_sqs_client().await;
-
-    let sqs_client = SqsClientForMessage::new(sqs_client, QUEUE_URL.to_string());
-    sqs_client.send(Message {
-        name: "Sam".to_string(),
-        country: "Belgium".to_string(),
-    }).await;
-    let messages = sqs_client.receive().await;
-    println!("Received {:?} from {}", messages, QUEUE_URL);
-
+    basic_example().await?;
     Ok(())
 }
 
@@ -74,6 +59,21 @@ async fn create_sqs_client() -> Client {
         .endpoint_url(ENDPOINT)
         .load()
         .await;
-    let sqs_client = aws_sdk_sqs::Client::new(&config);
+    let sqs_client = Client::new(&config);
     sqs_client
 }
+
+// what we want to achieve //
+// async fn derive_example() -> Result<(), Error> {
+//     let sqs_client = create_sqs_client().await;
+//
+//     let sqs_client = SqsClientForMessage::new(sqs_client, QUEUE_URL.to_string());
+//     sqs_client.send(Message {
+//         name: "Sam".to_string(),
+//         country: "Belgium".to_string(),
+//     }).await;
+//     let messages = sqs_client.receive().await;
+//     println!("Received {:?} from {}", messages, QUEUE_URL);
+//
+//     Ok(())
+// }

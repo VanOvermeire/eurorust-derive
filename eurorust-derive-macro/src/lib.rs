@@ -5,7 +5,6 @@ use syn::{DeriveInput, parse_macro_input};
 #[proc_macro_derive(Sender)]
 pub fn eurorust(args: TokenStream) -> TokenStream {
     let input = parse_macro_input!(args as DeriveInput);
-    // println!("{:?}", input);
     let name = input.ident;
     let struct_name = format_ident!("SqsClientFor{}", name);
 
