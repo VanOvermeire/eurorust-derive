@@ -74,7 +74,7 @@ async fn create_sqs_client() -> Client {
 //
 //     let sqs_client = SqsClientForMessage::new(sqs_client, QUEUE_URL.to_string());
 //     sqs_client.send(Message {
-//         name: "Sam".to_string(),
+//         name: "Sam2".to_string(),
 //         country: "Belgium".to_string(),
 //     }).await;
 //     let messages = sqs_client.receive().await;
