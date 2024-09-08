@@ -5,9 +5,12 @@ use aws_sdk_sqs::{Client, Error};
 use serde::{Deserialize, Serialize};
 
 const REGION: &str = "eu-west-1";
+// using localstack instead of talking to the real AWS cloud
 const ENDPOINT: &str = "http://localhost:4566";
+// point to a fake queue in our localstack
 const QUEUE_URL: &str = "http://sqs.eu-west-1.localhost.localstack.cloud:4566/000000000000/eurorust";
 
+// the data we want to send as a struct
 #[derive(Debug, Serialize, Deserialize)]
 struct Message {
     name: String,
@@ -21,6 +24,7 @@ async fn main() -> Result<(), Error> {
 }
 
 async fn basic_example() -> Result<(), Error> {
+    // create a client for talking with SQS
     let sqs_client = create_sqs_client().await;
 
     let message_to_send = Message {
@@ -28,6 +32,7 @@ async fn basic_example() -> Result<(), Error> {
         country: "Belgium".to_string(),
     };
 
+    // send our example message
     sqs_client.send_message()
         .queue_url(QUEUE_URL)
         .message_body(serde_json::to_string(&message_to_send).expect("conversion to json to work"))
@@ -35,12 +40,14 @@ async fn basic_example() -> Result<(), Error> {
         .await
         .expect("send message to queue to succeed");
 
+    // retrieve the example message...
     let response = sqs_client.receive_message()
         .queue_url(QUEUE_URL)
         .send()
         .await
         .expect("receive message to queue to succeed");
 
+    // ... and map it back to our expected struct
     let messages = response.messages.expect("to have at least one message")
         .into_iter()
         .map(|m| m.body.expect("body to be part of message"))
