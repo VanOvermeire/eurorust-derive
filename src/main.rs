@@ -35,23 +35,24 @@ async fn basic_example() -> Result<(), Error> {
     // send our example message
     sqs_client.send_message()
         .queue_url(QUEUE_URL)
-        .message_body(serde_json::to_string(&message_to_send).expect("conversion to json to work"))
+        .message_body(serde_json::to_string(&message_to_send).expect("conversion failed"))
         .send()
         .await
-        .expect("send message to queue to succeed");
+        .expect("send message failed");
 
     // retrieve the example message...
     let response = sqs_client.receive_message()
         .queue_url(QUEUE_URL)
         .send()
         .await
-        .expect("receive message to queue to succeed");
+        .expect("receive message failed");
 
     // ... and map it back to our expected struct
-    let messages = response.messages.expect("to have at least one message")
+    let messages = response.messages
+        .expect("no messages in response")
         .into_iter()
-        .map(|m| m.body.expect("body to be part of message"))
-        .map(|m| serde_json::from_str(&m).expect("message to be valid Message struct"))
+        .map(|m| m.body.expect("no body in response message"))
+        .map(|m| serde_json::from_str(&m).expect("message not valid Message struct"))
         .collect::<Vec<Message>>();
 
     println!("Received {:?} from {}", messages, QUEUE_URL);
