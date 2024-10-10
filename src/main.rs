@@ -2,6 +2,7 @@
 
 use aws_config::BehaviorVersion;
 use aws_sdk_sqs::{Client, Error};
+use eurorust_derive_macro::Sender;
 use serde::{Deserialize, Serialize};
 
 const REGION: &str = "eu-west-1";
@@ -11,7 +12,7 @@ const ENDPOINT: &str = "http://localhost:4566";
 const QUEUE_URL: &str = "http://sqs.eu-west-1.localhost.localstack.cloud:4566/000000000000/eurorust";
 
 // the data we want to send as a struct
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Sender)]
 struct Message {
     name: String,
     country: String,
@@ -19,7 +20,7 @@ struct Message {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    basic_example().await?;
+    derive_example().await?;
     Ok(())
 }
 
@@ -70,16 +71,16 @@ async fn create_sqs_client() -> Client {
 }
 
 // what we want to achieve //
-// async fn derive_example() -> Result<(), Error> {
-//     let sqs_client = create_sqs_client().await;
-//
-//     let sqs_client = SqsClientForMessage::new(sqs_client, QUEUE_URL.to_string());
-//     sqs_client.send(Message {
-//         name: "Sam2".to_string(),
-//         country: "Belgium".to_string(),
-//     }).await;
-//     let messages = sqs_client.receive().await;
-//     println!("Received {:?} from {}", messages, QUEUE_URL);
-//
-//     Ok(())
-// }
+async fn derive_example() -> Result<(), Error> {
+    let sqs_client = create_sqs_client().await;
+
+    let sqs_client = SqsClientForMessage::new(sqs_client, QUEUE_URL.to_string());
+    sqs_client.send(Message {
+        name: "Sam2".to_string(),
+        country: "Belgium".to_string(),
+    }).await;
+    let messages = sqs_client.receive().await;
+    println!("Received {:?} from {}", messages, QUEUE_URL);
+
+    Ok(())
+}
